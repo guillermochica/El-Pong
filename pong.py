@@ -25,7 +25,7 @@ class Bola(pygame.sprite.Sprite):
 		self.speed = [0.5,-0.5] #speed[0]-> eje y
 
 	# Actualizar
-	def actualizar(self, time, pala_jug):
+	def actualizar(self, time, pala_jug, pala_cpu):
 		#Actualiza la posición de la bola según la posición inicial
 		#y el espacio (velocidad*tiempo) que recorre
 		self.rect.centerx += self.speed[0]*time
@@ -44,6 +44,10 @@ class Bola(pygame.sprite.Sprite):
 		if pygame.sprite.collide_rect(self, pala_jug):
 			self.speed[0] = -self.speed[0] #si choca con pala cambiar dirección
 			self.rect.centerx += self.speed[0]*time #actualizar posición
+
+		if pygame.sprite.collide_rect(self, pala_cpu):
+			self.speed[0] = -self.speed[0]
+			self.rect.centerx += self.speed[0]*time
 
 # Clase Pala
 class Pala(pygame.sprite.Sprite):
@@ -66,6 +70,13 @@ class Pala(pygame.sprite.Sprite):
 			if keys[K_DOWN]:
 				self.rect.centery += self.speed*time
 
+	#inteligencia artifical para pala_cpu
+	def ia(self,time,ball):
+		if ball.speed[0] >=0 and ball.rect.centerx >= WIDTH/2: #comprueba que la pelota esté en el campo de la cpu
+			if self.rect.centery < ball.rect.centery:
+				self.rect.centery += self.speed * time
+			if self.rect.centery > ball.rect.centery:
+				self.rect.centery -= self.speed*time
 # ---------------------------------------------------------------------
 
 # Funciones
@@ -93,6 +104,7 @@ def main():
 	screen = pygame.display.set_mode((WIDTH, HEIGHT))
 	bola = Bola()
 	pala_jug = Pala(30)
+	pala_cpu = Pala(WIDTH - 30)
 
 	pygame.display.set_caption("El Pong")
 
@@ -107,11 +119,13 @@ def main():
 			if eventos.type == QUIT:
 				sys.exit(0)
 
-		bola.actualizar(time, pala_jug) #actualiza la posición de la bola
+		bola.actualizar(time, pala_jug, pala_cpu) #actualiza la posición de la bola
 		pala_jug.mover(time,keys) #actualiza la posición de la pala
+		pala_cpu.ia(time, bola)
 		screen.blit(background_image, (0, 0))
 		screen.blit(bola.image, bola.rect)
 		screen.blit(pala_jug.image, pala_jug.rect)
+		screen.blit(pala_cpu.image, pala_cpu.rect)
 		pygame.display.flip()
 
 	return 0
